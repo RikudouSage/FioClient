@@ -48,7 +48,7 @@ type account struct {
 // intended for integration with the parent client package.
 func New(model model.Account, dbManager *db.Manager) Account {
 	return &account{
-		api:          lo.Must(fio.NewClient(model.ApiKey)),
+		api:          lo.Must(fio.NewClient(model.APIKey)),
 		accountModel: model,
 		manager:      dbManager,
 	}
@@ -63,13 +63,13 @@ func (receiver *account) ResetTransactionPointer(ctx context.Context, to time.Ti
 }
 
 func (receiver *account) LoadNewTransactions(ctx context.Context) ([]model.Transaction, error) {
-	newTransactionsApi, err := receiver.api.TransactionsSinceLastPull(ctx)
+	newTransactionsAPI, err := receiver.api.TransactionsSinceLastPull(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed loading new transactions: %w", err)
 	}
 
-	newTransactions := lo.Map(newTransactionsApi, func(item dto.Transaction, index int) model.Transaction {
-		result := model.TransactionFromApiModel(item)
+	newTransactions := lo.Map(newTransactionsAPI, func(item dto.Transaction, _ int) model.Transaction {
+		result := model.TransactionFromAPIModel(item)
 		result.AccountNumber = receiver.accountModel.AccountNumber
 
 		return result

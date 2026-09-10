@@ -29,7 +29,7 @@ func NewManager(db *sql.DB, encryptionProvider EncryptedAPIKeyProvider) *Manager
 	}
 }
 
-func (receiver *Manager) redactApiKey(apiKey string) string {
+func (receiver *Manager) redactAPIKey(apiKey string) string {
 	if receiver.encryptionProvider != nil {
 		return ""
 	}
@@ -60,7 +60,7 @@ func (receiver *Manager) StoreAccount(ctx context.Context, account model.Account
 		ctx,
 		"insert into accounts (account_number, api_key, bank_code, currency, iban, bic) values (?, ?, ?, ?, ?, ?)",
 		account.AccountNumber,
-		receiver.redactApiKey(account.ApiKey),
+		receiver.redactAPIKey(account.APIKey),
 		account.BankCode,
 		account.Currency,
 		account.IBAN,
@@ -71,7 +71,7 @@ func (receiver *Manager) StoreAccount(ctx context.Context, account model.Account
 	}
 
 	if receiver.encryptionProvider != nil {
-		err = receiver.encryptionProvider.StoreAPIKey(account.AccountNumber, account.ApiKey)
+		err = receiver.encryptionProvider.StoreAPIKey(account.AccountNumber, account.APIKey)
 		if err != nil {
 			defer func() {
 				// best effort
@@ -89,13 +89,13 @@ func (receiver *Manager) FindAccountByNumber(ctx context.Context, accountNumber 
 	if err := receiver.
 		db.
 		QueryRowContext(ctx, "select account_number, api_key, bank_code, currency, iban, bic from accounts where account_number = ?", accountNumber).
-		Scan(&account.AccountNumber, &account.ApiKey, &account.BankCode, &account.Currency, &account.IBAN, &account.BIC); err != nil {
+		Scan(&account.AccountNumber, &account.APIKey, &account.BankCode, &account.Currency, &account.IBAN, &account.BIC); err != nil {
 		return model.Account{}, fmt.Errorf("failed querying account: %w", receiver.wrapError(err))
 	}
 
 	if receiver.encryptionProvider != nil {
 		var err error
-		account.ApiKey, err = receiver.encryptionProvider.GetAPIKey(accountNumber)
+		account.APIKey, err = receiver.encryptionProvider.GetAPIKey(accountNumber)
 		if err != nil {
 			return model.Account{}, fmt.Errorf("failed getting API key for account %s: %w", account.AccountNumber, err)
 		}
@@ -127,7 +127,7 @@ func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []m
 	for _, transaction := range transactions {
 		tmpVals := []any{transaction.ID, transaction.AccountNumber, transaction.Date, transaction.Amount, transaction.Currency, transaction.CounterpartyAccount, transaction.CounterpartyName, transaction.CounterpartyBankCode, transaction.CounterpartyBankName, transaction.ConstantSymbol, transaction.VariableSymbol, transaction.SpecificSymbol, transaction.UserIdentity, transaction.TransactionType, transaction.PerformedBy, transaction.AdditionalInfo, transaction.Comment, transaction.BIC, transaction.InstructionID, transaction.PayerReference}
 		values = append(values, tmpVals...)
-		subqueries = append(subqueries, "("+strings.Join(lo.RepeatBy(len(tmpVals), func(index int) string {
+		subqueries = append(subqueries, "("+strings.Join(lo.RepeatBy(len(tmpVals), func(_ int) string {
 			return "?"
 		}), ", ")+")")
 	}
@@ -223,12 +223,12 @@ func (receiver *Manager) GetAccounts(ctx context.Context) ([]model.Account, erro
 
 	for rows.Next() {
 		var account model.Account
-		if err := rows.Scan(&account.AccountNumber, &account.ApiKey, &account.BankCode, &account.Currency, &account.IBAN, &account.BIC); err != nil {
+		if err := rows.Scan(&account.AccountNumber, &account.APIKey, &account.BankCode, &account.Currency, &account.IBAN, &account.BIC); err != nil {
 			return nil, fmt.Errorf("failed loading accounts: %w", err)
 		}
 
 		if receiver.encryptionProvider != nil {
-			account.ApiKey, err = receiver.encryptionProvider.GetAPIKey(account.AccountNumber)
+			account.APIKey, err = receiver.encryptionProvider.GetAPIKey(account.AccountNumber)
 			if err != nil {
 				return nil, fmt.Errorf("failed loading api key for account %s: %w", account.AccountNumber, err)
 			}

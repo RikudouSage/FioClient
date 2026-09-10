@@ -59,20 +59,20 @@ func New(options ...Option) (Client, error) {
 		return nil, errors.New("the database path and encryption key must be configured, please use WithDatabase()")
 	}
 
-	isSqlCipherErr := instance.verifyEncryptedSQLCipher()
-	if isSqlCipherErr != nil {
+	isSQLCipherErr := instance.verifyEncryptedSQLCipher()
+	if isSQLCipherErr != nil {
 		switch {
-		case errors.Is(isSqlCipherErr, ErrNotSQLCipher), errors.Is(isSqlCipherErr, ErrDatabaseNotEncrypted):
+		case errors.Is(isSQLCipherErr, ErrNotSQLCipher), errors.Is(isSQLCipherErr, ErrDatabaseNotEncrypted):
 			if instance.encryptedAPIKeyProvider == nil {
-				return nil, fmt.Errorf("the sql database is not a properly configured SQLCipher one and no encrypted api key provider is configured - either use SQLCipher or use WithEncryptedAPIKeyProvider(). Reported error: %w", isSqlCipherErr)
+				return nil, fmt.Errorf("the sql database is not a properly configured SQLCipher one and no encrypted api key provider is configured - either use SQLCipher or use WithEncryptedAPIKeyProvider(). Reported error: %w", isSQLCipherErr)
 			}
 		default:
-			return nil, fmt.Errorf("failed verifying database encryption: %w", isSqlCipherErr)
+			return nil, fmt.Errorf("failed verifying database encryption: %w", isSQLCipherErr)
 		}
 	}
 
 	var encryptedProvider EncryptedAPIKeyProvider
-	if isSqlCipherErr != nil {
+	if isSQLCipherErr != nil {
 		encryptedProvider = instance.encryptedAPIKeyProvider
 	}
 

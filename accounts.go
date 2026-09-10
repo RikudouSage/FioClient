@@ -41,8 +41,8 @@ func (receiver *client) RegisterAccount(ctx context.Context, apiKey string, long
 		return zero, fmt.Errorf("failed getting account info: %w", err)
 	}
 
-	accountModel := model.AccountFromApiModel(apiAccount)
-	accountModel.ApiKey = apiKey
+	accountModel := model.AccountFromAPIModel(apiAccount)
+	accountModel.APIKey = apiKey
 
 	err = receiver.manager.StoreAccount(ctx, accountModel)
 	if err != nil {
@@ -54,7 +54,7 @@ func (receiver *client) RegisterAccount(ctx context.Context, apiKey string, long
 	}
 
 	err = receiver.manager.StoreTransactions(ctx, lo.Map(apiTransactions, func(item dto.Transaction, _ int) model.Transaction {
-		result := model.TransactionFromApiModel(item)
+		result := model.TransactionFromAPIModel(item)
 		result.AccountNumber = accountModel.AccountNumber
 
 		return result

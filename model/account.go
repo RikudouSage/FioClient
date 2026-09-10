@@ -6,8 +6,8 @@ import "go.chrastecky.dev/fio-api/fio/dto"
 type Account struct {
 	// AccountNumber is the domestic account number.
 	AccountNumber string
-	// ApiKey is the Fio API token used to access the account.
-	ApiKey string
+	// APIKey is the Fio API token used to access the account.
+	APIKey string
 	// BankCode is the domestic bank identifier.
 	BankCode string
 	// Currency is the account's ISO 4217 currency code.
@@ -18,9 +18,9 @@ type Account struct {
 	BIC string
 }
 
-// AccountFromApiModel converts Fio API account information into the locally
+// AccountFromAPIModel converts Fio API account information into the locally
 // persisted account model. The returned model does not contain an API key.
-func AccountFromApiModel(account dto.AccountInfo) Account {
+func AccountFromAPIModel(account dto.AccountInfo) Account {
 	return Account{
 		AccountNumber: account.AccountID,
 		BankCode:      account.BankID,

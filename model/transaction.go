@@ -52,9 +52,9 @@ type Transaction struct {
 	PayerReference *string
 }
 
-// TransactionFromApiModel converts a Fio API transaction into the locally
+// TransactionFromAPIModel converts a Fio API transaction into the locally
 // persisted transaction model. AccountNumber must be assigned by the caller.
-func TransactionFromApiModel(transaction dto.Transaction) Transaction {
+func TransactionFromAPIModel(transaction dto.Transaction) Transaction {
 	return Transaction{
 		ID:                   transaction.ID.Value,
 		Date:                 transaction.Date.Value,
