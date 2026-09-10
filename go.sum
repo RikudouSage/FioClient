@@ -32,6 +32,8 @@ go.chrastecky.dev/fio-api/fio v0.4.0 h1:d5+wEC7J90Cv/+UxxOqD7ZXT/VbhVOrflHiZ4OwT
 go.chrastecky.dev/fio-api/fio v0.4.0/go.mod h1:WzRHoGKt7aXbTALQZbYs+HtEpyjuSlhy8MART0bdT3g=
 go.chrastecky.dev/fio-api/fio v0.4.1 h1:7yNlTbhryZ8PC7yQY1SHfbFyGHK3DhgmzAKCK6HW+BM=
 go.chrastecky.dev/fio-api/fio v0.4.1/go.mod h1:WzRHoGKt7aXbTALQZbYs+HtEpyjuSlhy8MART0bdT3g=
+go.chrastecky.dev/fio-api/fio v0.4.2 h1:gajlIXp5yatyUGRD3rmOjWAydSV+ZXm+5OuEWB0rb50=
+go.chrastecky.dev/fio-api/fio v0.4.2/go.mod h1:WzRHoGKt7aXbTALQZbYs+HtEpyjuSlhy8MART0bdT3g=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=

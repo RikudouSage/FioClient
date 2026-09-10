@@ -58,12 +58,12 @@ func (receiver *client) RegisterAccount(ctx context.Context, apiKey string) (mod
 }
 
 func (receiver *client) Account(ctx context.Context, accountNumber string) (account.Account, error) {
-	var zero model.Account
+	var zero account.Account
 
 	if accountModel, err := receiver.manager.FindAccountByNumber(ctx, accountNumber); err != nil {
 		return zero, fmt.Errorf("failed getting account: %w", err)
 	} else {
-		return account.New(accountModel), nil
+		return account.New(accountModel, receiver.manager), nil
 	}
 }
 

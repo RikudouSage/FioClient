@@ -6,7 +6,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/pressly/goose/v3 v3.28.0
 	github.com/samber/lo v1.53.0
-	go.chrastecky.dev/fio-api/fio v0.4.1
+	go.chrastecky.dev/fio-api/fio v0.4.2
 )
 
 require (

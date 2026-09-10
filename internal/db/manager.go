@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/mattn/go-sqlite3"
@@ -100,4 +101,67 @@ func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []m
 	}
 
 	return nil
+}
+
+func (receiver *Manager) LoadTransactions(ctx context.Context, options ...LoadOption) ([]model.Transaction, error) {
+	opts := loadOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString("select * from transactions")
+	if len(opts.where) != 0 {
+		queryBuilder.WriteString(" where ")
+		subQueries := make([]string, 0, len(opts.where))
+		for _, where := range opts.where {
+			subQueries = append(subQueries, "("+where+")")
+		}
+		queryBuilder.WriteString(strings.Join(subQueries, " and "))
+	}
+	if opts.orderByDirection != "" && opts.orderByField != "" {
+		queryBuilder.WriteString(" order by " + opts.orderByField + " " + opts.orderByDirection)
+	}
+	if opts.limit != 0 {
+		queryBuilder.WriteString(" limit " + strconv.FormatUint(uint64(opts.limit), 10))
+	}
+
+	rows, err := receiver.db.QueryContext(ctx, queryBuilder.String(), opts.bindValues...)
+	if err != nil {
+		return nil, fmt.Errorf("failed loading transactions: %w", err)
+	}
+	defer rows.Close()
+
+	result := make([]model.Transaction, 0)
+	for rows.Next() {
+		var transaction model.Transaction
+		if err := rows.Scan(
+			&transaction.ID,
+			&transaction.AccountNumber,
+			&transaction.Date,
+			&transaction.Amount,
+			&transaction.Currency,
+			&transaction.CounterpartyAccount,
+			&transaction.CounterpartyName,
+			&transaction.CounterpartyBankCode,
+			&transaction.CounterpartyBankName,
+			&transaction.ConstantSymbol,
+			&transaction.VariableSymbol,
+			&transaction.SpecificSymbol,
+			&transaction.UserIdentity,
+			&transaction.TransactionType,
+			&transaction.PerformedBy,
+			&transaction.AdditionalInfo,
+			&transaction.Comment,
+			&transaction.BIC,
+			&transaction.InstructionID,
+			&transaction.PayerReference,
+		); err != nil {
+			return nil, fmt.Errorf("failed loading transactions: %w", err)
+		}
+
+		result = append(result, transaction)
+	}
+
+	return result, nil
 }
