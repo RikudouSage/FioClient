@@ -137,6 +137,7 @@ func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []m
 	}
 
 	query += strings.Join(subqueries, ", \n")
+	query += " on conflict (account_number, id) do update set \"date\" = excluded.date, amount = excluded.amount, currency = excluded.currency, counterparty_account = excluded.counterparty_account, counterparty_name = excluded.counterparty_name, counterparty_bank_code = excluded.counterparty_bank_code, counterparty_bank_name = excluded.counterparty_bank_name, constant_symbol = excluded.constant_symbol, variable_symbol = excluded.variable_symbol, specific_symbol = excluded.specific_symbol, user_identity = excluded.user_identity, transaction_type = excluded.transaction_type, performed_by = excluded.performed_by, additional_info = excluded.additional_info, comment = excluded.comment, bic = excluded.bic, instruction_id = excluded.instruction_id, payer_reference = excluded.payer_reference"
 
 	if _, err := receiver.db.ExecContext(ctx, query, values...); err != nil {
 		return fmt.Errorf("failed inserting transactions: %w", err)
@@ -203,6 +204,40 @@ func (receiver *Manager) LoadTransactions(ctx context.Context, options ...LoadOp
 		}
 
 		result = append(result, transaction)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed iterating transactions: %w", err)
+	}
+
+	return result, nil
+}
+
+func (receiver *Manager) GetAccounts(ctx context.Context) ([]model.Account, error) {
+	result := make([]model.Account, 0)
+
+	rows, err := receiver.db.QueryContext(ctx, "select * from accounts")
+	if err != nil {
+		return nil, fmt.Errorf("failed loading accounts: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var account model.Account
+		if err := rows.Scan(&account.AccountNumber, &account.ApiKey, &account.BankCode, &account.Currency, &account.IBAN, &account.BIC); err != nil {
+			return nil, fmt.Errorf("failed loading accounts: %w", err)
+		}
+
+		if receiver.encryptionProvider != nil {
+			account.ApiKey, err = receiver.encryptionProvider.GetAPIKey(account.AccountNumber)
+			if err != nil {
+				return nil, fmt.Errorf("failed loading api key for account %s: %w", account.AccountNumber, err)
+			}
+		}
+
+		result = append(result, account)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed iterating accounts: %w", err)
 	}
 
 	return result, nil

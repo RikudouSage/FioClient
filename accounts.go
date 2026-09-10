@@ -76,3 +76,7 @@ func (receiver *client) RemoveAccount(ctx context.Context, accountNumber string)
 
 	return nil
 }
+
+func (receiver *client) Accounts(ctx context.Context) ([]model.Account, error) {
+	return receiver.manager.GetAccounts(ctx)
+}

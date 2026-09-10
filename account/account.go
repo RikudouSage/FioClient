@@ -20,7 +20,7 @@ type Account interface {
 	LoadNewTransactions(ctx context.Context) ([]model.Transaction, error)
 
 	Transactions(ctx context.Context) ([]model.Transaction, error)
-	Transaction(ctx context.Context, transactionID string) (model.Transaction, error)
+	Transaction(ctx context.Context, transactionID int64) (model.Transaction, error)
 }
 
 type account struct {
@@ -87,12 +87,12 @@ func (receiver *account) Transactions(ctx context.Context) ([]model.Transaction,
 	)
 }
 
-func (receiver *account) Transaction(ctx context.Context, transactionID string) (model.Transaction, error) {
+func (receiver *account) Transaction(ctx context.Context, transactionID int64) (model.Transaction, error) {
 	transactions, err := receiver.manager.LoadTransactions(
 		ctx,
 		db.WithAccountNumber(receiver.accountModel.AccountNumber),
 		db.WithOrderBy("date", "desc"),
-		db.WithWhere("transaction_id = ?", transactionID),
+		db.WithWhere("id = ?", transactionID),
 		db.WithLimit(1),
 	)
 	if err != nil {
