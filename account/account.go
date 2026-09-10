@@ -2,6 +2,7 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,11 +13,14 @@ import (
 	"go.chrastecky.dev/fio-client/fioclient/model"
 )
 
+var ErrTransactionNotFound = errors.New("transaction not found")
+
 type Account interface {
 	ResetTransactionPointer(ctx context.Context, to time.Time) error
 	LoadNewTransactions(ctx context.Context) ([]model.Transaction, error)
 
 	Transactions(ctx context.Context) ([]model.Transaction, error)
+	Transaction(ctx context.Context, transactionID string) (model.Transaction, error)
 }
 
 type account struct {
@@ -81,4 +85,23 @@ func (receiver *account) Transactions(ctx context.Context) ([]model.Transaction,
 		db.WithAccountNumber(receiver.accountModel.AccountNumber),
 		db.WithOrderBy("date", "desc"),
 	)
+}
+
+func (receiver *account) Transaction(ctx context.Context, transactionID string) (model.Transaction, error) {
+	transactions, err := receiver.manager.LoadTransactions(
+		ctx,
+		db.WithAccountNumber(receiver.accountModel.AccountNumber),
+		db.WithOrderBy("date", "desc"),
+		db.WithWhere("transaction_id = ?", transactionID),
+		db.WithLimit(1),
+	)
+	if err != nil {
+		return model.Transaction{}, fmt.Errorf("failed loading transaction: %w", err)
+	}
+
+	if len(transactions) == 0 {
+		return model.Transaction{}, ErrTransactionNotFound
+	}
+
+	return transactions[0], nil
 }
