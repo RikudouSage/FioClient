@@ -16,7 +16,7 @@ import (
 
 var ErrAccountAlreadyExists = errors.New("the account already exists")
 
-func (receiver *client) RegisterAccount(ctx context.Context, apiKey string) (model.Account, error) {
+func (receiver *client) RegisterAccount(ctx context.Context, apiKey string, longAccessToken bool) (model.Account, error) {
 	var zero model.Account
 
 	apiClient, err := fio.NewClient(apiKey)
@@ -24,7 +24,17 @@ func (receiver *client) RegisterAccount(ctx context.Context, apiKey string) (mod
 		return zero, fmt.Errorf("failed creating a temporary api client: %w", err)
 	}
 
-	apiAccount, apiTransactions, err := apiClient.AccountInfoAndTransactions(ctx)
+	endDate := time.Now()
+	startDate := endDate.AddDate(0, 0, -90)
+	if longAccessToken {
+		startDate = endDate.AddDate(-10, 0, 0)
+	}
+
+	apiAccount, apiTransactions, err := apiClient.AccountInfoAndTransactionsByDate(
+		ctx,
+		startDate,
+		endDate,
+	)
 	if err != nil {
 		return zero, fmt.Errorf("failed getting account info: %w", err)
 	}
@@ -51,9 +61,30 @@ func (receiver *client) RegisterAccount(ctx context.Context, apiKey string) (mod
 		defer func() {
 			// best effort
 			_ = receiver.manager.RemoveAccountByNumber(ctx, accountModel.AccountNumber)
-			_ = apiClient.SetLastFailedTransactionDate(ctx, time.Now().Add(-90*24*time.Hour))
 		}()
 		return accountModel, fmt.Errorf("failed inserting transactions: %w", err)
+	}
+
+	if len(apiTransactions) > 0 {
+		lastID := lo.MaxBy(apiTransactions, func(a, b dto.Transaction) bool {
+			return a.ID.Value > b.ID.Value
+		}).ID.Value
+
+		if err := apiClient.SetLastTransactionID(ctx, lastID); err != nil {
+			return accountModel, fmt.Errorf(
+				"failed setting transaction marker for account %s: %w",
+				accountModel.AccountNumber,
+				err,
+			)
+		}
+	} else {
+		if err := apiClient.SetLastFailedTransactionDate(ctx, time.Now()); err != nil {
+			return accountModel, fmt.Errorf(
+				"failed setting transaction marker for account %s: %w",
+				accountModel.AccountNumber,
+				err,
+			)
+		}
 	}
 
 	return accountModel, nil

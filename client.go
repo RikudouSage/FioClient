@@ -18,7 +18,7 @@ type Client interface {
 
 	Accounts(ctx context.Context) ([]model.Account, error)
 	Account(ctx context.Context, accountNumber string) (account.Account, error)
-	RegisterAccount(ctx context.Context, apiKey string) (model.Account, error)
+	RegisterAccount(ctx context.Context, apiKey string, longAccessToken bool) (model.Account, error)
 	RemoveAccount(ctx context.Context, accountNumber string) error
 }
 
