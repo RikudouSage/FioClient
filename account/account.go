@@ -13,13 +13,25 @@ import (
 	"go.chrastecky.dev/fio-client/fioclient/model"
 )
 
+// ErrTransactionNotFound indicates that an account has no locally stored
+// transaction with the requested ID.
 var ErrTransactionNotFound = errors.New("transaction not found")
 
+// Account provides synchronization and transaction queries for one registered
+// Fio account.
 type Account interface {
+	// ResetTransactionPointer moves the remote transaction-download marker to
+	// the supplied time. A zero time resets it to 90 days before the call.
 	ResetTransactionPointer(ctx context.Context, to time.Time) error
+	// LoadNewTransactions downloads transactions since the remote marker, stores
+	// them locally, and returns the downloaded transactions.
 	LoadNewTransactions(ctx context.Context) ([]model.Transaction, error)
 
+	// Transactions returns all locally stored transactions for the account in
+	// descending date order.
 	Transactions(ctx context.Context) ([]model.Transaction, error)
+	// Transaction returns the locally stored transaction identified by
+	// transactionID. It returns ErrTransactionNotFound when no match exists.
 	Transaction(ctx context.Context, transactionID int64) (model.Transaction, error)
 }
 
@@ -29,6 +41,11 @@ type account struct {
 	manager      *db.Manager
 }
 
+// New creates an account-scoped client for model using dbManager as its local
+// transaction store.
+//
+// Most callers should use fioclient.Client.Account instead. New is primarily
+// intended for integration with the parent client package.
 func New(model model.Account, dbManager *db.Manager) Account {
 	return &account{
 		api:          lo.Must(fio.NewClient(model.ApiKey)),

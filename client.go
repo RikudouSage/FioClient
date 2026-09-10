@@ -13,12 +13,24 @@ import (
 	. "go.chrastecky.dev/fio-client/fioclient/types"
 )
 
+// Client manages registered Fio accounts and their locally persisted
+// transaction histories.
+//
+// A Client owns its database connection. Call Close when the client is no
+// longer needed.
 type Client interface {
 	io.Closer
 
+	// Accounts returns all registered accounts.
 	Accounts(ctx context.Context) ([]model.Account, error)
+	// Account returns the account-scoped client for accountNumber.
 	Account(ctx context.Context, accountNumber string) (account.Account, error)
+	// RegisterAccount validates apiKey, stores the corresponding account and
+	// its initial transaction history, and returns the stored account metadata.
+	// When longAccessToken is true, the initial import requests up to ten years
+	// of history; otherwise it requests the preceding 90 days.
 	RegisterAccount(ctx context.Context, apiKey string, longAccessToken bool) (model.Account, error)
+	// RemoveAccount removes accountNumber and its associated local data.
 	RemoveAccount(ctx context.Context, accountNumber string) error
 }
 
@@ -28,6 +40,12 @@ type client struct {
 	encryptedAPIKeyProvider EncryptedAPIKeyProvider
 }
 
+// New creates a Client using options.
+//
+// The client must be configured with WithDatabase or WithSQLDatabase. A plain
+// SQLite database additionally requires WithEncryptedAPIKeyProvider so API
+// tokens are not persisted unencrypted. New applies pending database
+// migrations before returning.
 func New(options ...Option) (Client, error) {
 	instance := &client{}
 

@@ -14,6 +14,8 @@ import (
 	"go.chrastecky.dev/fio-client/fioclient/model"
 )
 
+// ErrAccountAlreadyExists indicates that an account with the same account
+// number is already registered.
 var ErrAccountAlreadyExists = errors.New("the account already exists")
 
 func (receiver *client) RegisterAccount(ctx context.Context, apiKey string, longAccessToken bool) (model.Account, error) {

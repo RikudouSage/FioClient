@@ -10,8 +10,16 @@ import (
 	"go.chrastecky.dev/fio-client/fioclient/migrations"
 )
 
+// ErrNotSQLCipher indicates that the configured database driver does not
+// support SQLCipher.
 var ErrNotSQLCipher = errors.New("database driver does not support SQLCipher")
+
+// ErrDatabaseNotEncrypted indicates that the database connection has no active
+// SQLCipher key.
 var ErrDatabaseNotEncrypted = errors.New("database connection has no SQLCipher key")
+
+// ErrInvalidDatabaseKey indicates that the database cannot be read using the
+// configured SQLCipher key.
 var ErrInvalidDatabaseKey = errors.New("database cannot be read using the configured SQLCipher key")
 
 func (receiver *client) migrate() error {
