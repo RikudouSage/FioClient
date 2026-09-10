@@ -11,19 +11,30 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"github.com/samber/lo"
 	"go.chrastecky.dev/fio-client/fioclient/model"
+	. "go.chrastecky.dev/fio-client/fioclient/types"
 )
 
 var ErrNonUnique = errors.New("the affected row is not unique")
 var ErrNoRows = errors.New("no rows found")
 
 type Manager struct {
-	db *sql.DB
+	db                 *sql.DB
+	encryptionProvider EncryptedAPIKeyProvider
 }
 
-func NewManager(db *sql.DB) *Manager {
+func NewManager(db *sql.DB, encryptionProvider EncryptedAPIKeyProvider) *Manager {
 	return &Manager{
-		db: db,
+		db:                 db,
+		encryptionProvider: encryptionProvider,
 	}
+}
+
+func (receiver *Manager) redactApiKey(apiKey string) string {
+	if receiver.encryptionProvider != nil {
+		return ""
+	}
+
+	return apiKey
 }
 
 func (receiver *Manager) wrapError(err error) error {
@@ -44,11 +55,12 @@ func (receiver *Manager) wrapError(err error) error {
 	return err
 }
 
-func (receiver *Manager) StoreAccount(account model.Account) error {
-	_, err := receiver.db.Exec(
+func (receiver *Manager) StoreAccount(ctx context.Context, account model.Account) error {
+	_, err := receiver.db.ExecContext(
+		ctx,
 		"insert into accounts (account_number, api_key, bank_code, currency, iban, bic) values (?, ?, ?, ?, ?, ?)",
 		account.AccountNumber,
-		account.ApiKey,
+		receiver.redactApiKey(account.ApiKey),
 		account.BankCode,
 		account.Currency,
 		account.IBAN,
@@ -56,6 +68,17 @@ func (receiver *Manager) StoreAccount(account model.Account) error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed creating account: %w", receiver.wrapError(err))
+	}
+
+	if receiver.encryptionProvider != nil {
+		err = receiver.encryptionProvider.StoreAPIKey(account.AccountNumber, account.ApiKey)
+		if err != nil {
+			defer func() {
+				// best effort
+				_ = receiver.RemoveAccountByNumber(ctx, account.AccountNumber)
+			}()
+			return fmt.Errorf("failed storing API key for account %s: %w", account.AccountNumber, err)
+		}
 	}
 
 	return nil
@@ -70,10 +93,25 @@ func (receiver *Manager) FindAccountByNumber(ctx context.Context, accountNumber 
 		return model.Account{}, fmt.Errorf("failed querying account: %w", receiver.wrapError(err))
 	}
 
+	if receiver.encryptionProvider != nil {
+		var err error
+		account.ApiKey, err = receiver.encryptionProvider.GetAPIKey(accountNumber)
+		if err != nil {
+			return model.Account{}, fmt.Errorf("failed getting API key for account %s: %w", account.AccountNumber, err)
+		}
+	}
+
 	return account, nil
 }
 
 func (receiver *Manager) RemoveAccountByNumber(ctx context.Context, accountNumber string) error {
+	if receiver.encryptionProvider != nil {
+		err := receiver.encryptionProvider.RemoveAPIKey(accountNumber)
+		if err != nil {
+			return fmt.Errorf("failed removing API key for account %s: %w", accountNumber, err)
+		}
+	}
+
 	_, err := receiver.db.ExecContext(ctx, "delete from accounts where account_number = ?", accountNumber)
 	if err != nil {
 		return fmt.Errorf("failed deleting account: %w", receiver.wrapError(err))
@@ -92,6 +130,10 @@ func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []m
 		subqueries = append(subqueries, "("+strings.Join(lo.RepeatBy(len(tmpVals), func(index int) string {
 			return "?"
 		}), ", ")+")")
+	}
+
+	if len(subqueries) == 0 {
+		return nil
 	}
 
 	query += strings.Join(subqueries, ", \n")

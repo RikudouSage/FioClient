@@ -32,11 +32,13 @@ func (receiver *client) RegisterAccount(ctx context.Context, apiKey string) (mod
 	accountModel := model.AccountFromApiModel(apiAccount)
 	accountModel.ApiKey = apiKey
 
-	err = receiver.manager.StoreAccount(accountModel)
+	err = receiver.manager.StoreAccount(ctx, accountModel)
 	if err != nil {
 		if errors.Is(err, db.ErrNonUnique) {
 			return zero, fmt.Errorf("%w: %w", ErrAccountAlreadyExists, err)
 		}
+
+		return zero, fmt.Errorf("failed storing account %s: %w", accountModel.AccountNumber, err)
 	}
 
 	err = receiver.manager.StoreTransactions(ctx, lo.Map(apiTransactions, func(item dto.Transaction, _ int) model.Transaction {

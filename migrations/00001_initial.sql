@@ -1,40 +1,41 @@
 -- +goose up
-CREATE TABLE accounts (
-    account_number           VARCHAR(34)    PRIMARY KEY NOT NULL,
-    api_key                  VARCHAR(255)   NOT NULL UNIQUE,
-    bank_code                VARCHAR(4)     NOT NULL,
-    currency                 CHAR(3)        NOT NULL,
-    iban                     VARCHAR(34)    NOT NULL,
-    bic                      VARCHAR(11)    NOT NULL
+create table accounts (
+    account_number           varchar(34)    primary key not null,
+    api_key                  varchar(255)   not null,
+    bank_code                varchar(4)     not null,
+    currency                 char(3)        not null,
+    iban                     varchar(34)    not null,
+    bic                      varchar(11)    not null
 );
 
-CREATE TABLE transactions (
-    id                       BIGINT         NOT NULL,
-    account_number           VARCHAR(34)    NOT NULL,
-    date                     DATETZ           NOT NULL,
-    amount                   DECIMAL        NOT NULL,
-    currency                 CHAR(3)        NOT NULL,
-    counterparty_account     VARCHAR(34)    NOT NULL,
-    counterparty_name        VARCHAR(255)   NOT NULL,
-    counterparty_bank_code   VARCHAR(4)     NOT NULL,
-    counterparty_bank_name   VARCHAR(255)   NOT NULL,
-    constant_symbol          VARCHAR(10),
-    variable_symbol          VARCHAR(10),
-    specific_symbol          VARCHAR(10),
-    user_identity            VARCHAR(255),
-    transaction_type         VARCHAR(255)   NOT NULL,
-    performed_by             VARCHAR(255),
-    additional_info          TEXT,
-    comment                  TEXT,
-    bic                      VARCHAR(11),
-    instruction_id           BIGINT,
-    payer_reference          VARCHAR(255),
-    PRIMARY KEY (account_number, id),
-    FOREIGN KEY (account_number) REFERENCES accounts (account_number) ON DELETE CASCADE
+create table transactions (
+    id                       bigint         not null,
+    account_number           varchar(34)    not null,
+    date                     datetz         not null,
+    amount                   decimal        not null,
+    currency                 char(3)        not null,
+    counterparty_account     varchar(34)    not null,
+    counterparty_name        varchar(255)   not null,
+    counterparty_bank_code   varchar(4)     not null,
+    counterparty_bank_name   varchar(255)   not null,
+    constant_symbol          varchar(10),
+    variable_symbol          varchar(10),
+    specific_symbol          varchar(10),
+    user_identity            varchar(255),
+    transaction_type         varchar(255)   not null,
+    performed_by             varchar(255),
+    additional_info          text,
+    comment                  text,
+    bic                      varchar(11),
+    instruction_id           bigint,
+    payer_reference          varchar(255),
+    primary key (account_number, id),
+    foreign key (account_number) references accounts (account_number) on delete cascade
 );
 
-CREATE INDEX transactions_account_date_idx ON transactions (account_number, date);
+create index transactions_account_date_idx on transactions (account_number, date);
+create unique index accounts_api_key_unique_idx on accounts(api_key) where api_key != '';
 
 -- +goose down
-DROP TABLE transactions;
-DROP TABLE accounts;
+drop table transactions;
+drop table accounts;

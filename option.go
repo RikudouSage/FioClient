@@ -42,3 +42,17 @@ func WithDatabase(path string, key SecretKey) Option {
 		return nil
 	}
 }
+
+func WithSQLDatabase(db *sql.DB) Option {
+	return func(instance *client) error {
+		instance.database = db
+		return nil
+	}
+}
+
+func WithEncryptedAPIKeyProvider(provider EncryptedAPIKeyProvider) Option {
+	return func(instance *client) error {
+		instance.encryptedAPIKeyProvider = provider
+		return nil
+	}
+}
