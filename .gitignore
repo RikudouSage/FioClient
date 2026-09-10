@@ -1,0 +1,7 @@
+/.idea
+*.iml
+/libfioclient.h
+/libfioclient.so
+/.direnv
+/data
+/build
