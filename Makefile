@@ -168,7 +168,7 @@ build-lib-current: build-sqlcipher-current generate-go-sqlite3
 	CGO_ENABLED=1 \
 	CC="gcc" \
 	CGO_CFLAGS="-I$(SQLCIPHER_CURRENT_INSTALL)/include" \
-	CGO_LDFLAGS="-L$(SQLCIPHER_CURRENT_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_CURRENT_LIB -lcrypto" \
+	CGO_LDFLAGS="-L$(SQLCIPHER_CURRENT_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_CURRENT_LIB -lcrypto -lm" \
 	go build \
 		-modfile "$(GO_SQLITE3_MODFILE)" \
 		-tags "$(GO_BUILD_TAGS)" \
@@ -183,7 +183,7 @@ build-lib-386: build-sqlcipher-386 generate-go-sqlite3
 	CGO_ENABLED=1 \
 	CC="$$CC_386" \
 	CGO_CFLAGS="-I$(SQLCIPHER_386_INSTALL)/include" \
-	CGO_LDFLAGS="-L$(SQLCIPHER_386_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_386_LIB -lcrypto" \
+	CGO_LDFLAGS="-L$(SQLCIPHER_386_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_386_LIB -lcrypto -lm" \
 	go build \
 		-modfile "$(GO_SQLITE3_MODFILE)" \
 		-tags "$(GO_BUILD_TAGS)" \
@@ -200,7 +200,7 @@ build-lib-arm7: build-sqlcipher-arm7 generate-go-sqlite3
 	CGO_ENABLED=1 \
 	CC="$$CC_ARMV7" \
 	CGO_CFLAGS="-I$(SQLCIPHER_ARM7_INSTALL)/include" \
-	CGO_LDFLAGS="-L$(SQLCIPHER_ARM7_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_ARMV7_LIB -lcrypto" \
+	CGO_LDFLAGS="-L$(SQLCIPHER_ARM7_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_ARMV7_LIB -lcrypto -lm" \
 	go build \
 		-modfile "$(GO_SQLITE3_MODFILE)" \
 		-tags "$(GO_BUILD_TAGS)" \
@@ -216,7 +216,7 @@ build-lib-arm64: build-sqlcipher-arm64 generate-go-sqlite3
 	CGO_ENABLED=1 \
 	CC="$$CC_ARM64" \
 	CGO_CFLAGS="-I$(SQLCIPHER_ARM64_INSTALL)/include" \
-	CGO_LDFLAGS="-L$(SQLCIPHER_ARM64_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_ARM64_LIB -lcrypto" \
+	CGO_LDFLAGS="-L$(SQLCIPHER_ARM64_INSTALL)/lib -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -L$$OPENSSL_ARM64_LIB -lcrypto -lm" \
 	go build \
 		-modfile "$(GO_SQLITE3_MODFILE)" \
 		-tags "$(GO_BUILD_TAGS)" \
@@ -262,6 +262,21 @@ release-all: \
 
 
 # ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+test: test-c
+	go test ./...
+
+
+test-c: build-lib-current
+	$(CC) -std=c11 -Wall -Wextra -Werror -Wno-unused-function \
+		-I. cbindings/tests/api_test.c -L. -lfioclient \
+		-o /tmp/fioclient-c-api-test
+	LD_LIBRARY_PATH=. /tmp/fioclient-c-api-test
+
+
+# ------------------------------------------------------------------------------
 # Cleanup
 # ------------------------------------------------------------------------------
 
@@ -298,6 +313,8 @@ build-lib-i486: build-lib-386
 	release-lib-arm7 \
 	release-lib-arm64 \
 	release-all \
+	test \
+	test-c \
 	clean-sqlcipher \
 	clean \
 	build-lib-armv7hl \
