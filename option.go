@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pressly/goose/v3"
 	. "go.chrastecky.dev/fio-client/fioclient/types"
 )
 
@@ -65,6 +66,14 @@ func WithSQLDatabase(db *sql.DB) Option {
 func WithEncryptedAPIKeyProvider(provider EncryptedAPIKeyProvider) Option {
 	return func(instance *client) error {
 		instance.encryptedAPIKeyProvider = provider
+		return nil
+	}
+}
+
+// WithGooseLogger configures the logger used while running database migrations.
+func WithGooseLogger(logger goose.Logger) Option {
+	return func(instance *client) error {
+		instance.gooseLogger = logger
 		return nil
 	}
 }

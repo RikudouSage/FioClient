@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/pressly/goose/v3"
 	"go.chrastecky.dev/fio-client/fioclient/account"
 	"go.chrastecky.dev/fio-client/fioclient/internal/db"
 	"go.chrastecky.dev/fio-client/fioclient/model"
@@ -38,6 +39,7 @@ type client struct {
 	database                *sql.DB
 	manager                 *db.Manager
 	encryptedAPIKeyProvider EncryptedAPIKeyProvider
+	gooseLogger             goose.Logger
 }
 
 // New creates a Client using options.
@@ -49,6 +51,9 @@ type client struct {
 func New(options ...Option) (Client, error) {
 	instance := &client{}
 
+	options = append([]Option{
+		WithGooseLogger(NewNoopGooseLogger()),
+	}, options...)
 	for _, option := range options {
 		if err := option(instance); err != nil {
 			return nil, fmt.Errorf("failed applying option: %w", err)

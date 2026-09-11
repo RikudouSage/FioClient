@@ -23,6 +23,7 @@ var ErrDatabaseNotEncrypted = errors.New("database connection has no SQLCipher k
 var ErrInvalidDatabaseKey = errors.New("database cannot be read using the configured SQLCipher key")
 
 func (receiver *client) migrate() error {
+	goose.SetLogger(receiver.gooseLogger)
 	goose.SetBaseFS(migrations.Assets)
 	if err := goose.SetDialect("sqlite"); err != nil {
 		return fmt.Errorf("failed setting dialect: %w", err)
