@@ -27,6 +27,10 @@ type Account interface {
 	// them locally, and returns the downloaded transactions.
 	LoadNewTransactions(ctx context.Context) ([]model.Transaction, error)
 
+	// LoadTransactionsByDate downloads transactions within the inclusive date
+	// range, stores them locally, and returns the downloaded transactions.
+	LoadTransactionsByDate(ctx context.Context, startDate time.Time, endDate time.Time) ([]model.Transaction, error)
+
 	// Transactions returns all locally stored transactions for the account in
 	// descending date order.
 	Transactions(ctx context.Context) ([]model.Transaction, error)
@@ -121,4 +125,28 @@ func (receiver *account) Transaction(ctx context.Context, transactionID int64) (
 	}
 
 	return transactions[0], nil
+}
+
+func (receiver *account) LoadTransactionsByDate(ctx context.Context, startDate time.Time, endDate time.Time) ([]model.Transaction, error) {
+	transactionsAPI, err := receiver.api.TransactionsByDate(ctx, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed loading transactions: %w", err)
+	}
+
+	newTransactions := lo.Map(transactionsAPI, func(item dto.Transaction, _ int) model.Transaction {
+		result := model.TransactionFromAPIModel(item)
+		result.AccountNumber = receiver.accountModel.AccountNumber
+
+		return result
+	})
+
+	if len(newTransactions) == 0 {
+		return make([]model.Transaction, 0), nil
+	}
+
+	if err := receiver.manager.StoreTransactions(ctx, newTransactions); err != nil {
+		return nil, fmt.Errorf("failed storing transactions: %w", err)
+	}
+
+	return newTransactions, nil
 }
