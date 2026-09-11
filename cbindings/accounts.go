@@ -8,7 +8,11 @@ package main
 */
 import "C"
 
-import "unsafe"
+import (
+	"unsafe"
+
+	"go.chrastecky.dev/fio-client/fioclient/account"
+)
 
 // FioClientGetAccounts returns all registered accounts.
 //
@@ -144,6 +148,32 @@ func FioClientOpenAccount(clientID C.FioClientHandle, contextID C.FioClientConte
 	}
 
 	*out = C.FioClientAccountHandle(registerHandle(account))
+
+	clearLastError()
+
+	return C.FioClientSuccess
+}
+
+// FioClientGetAccountData returns metadata for an open account handle. The
+// caller owns the returned allocation and must release it with
+// FioClientFreeAccount.
+//
+//export FioClientGetAccountData
+func FioClientGetAccountData(accountID C.FioClientAccountHandle, out *C.FioClientAccount) C.FioClientResult {
+	if out == nil {
+		setLastError(nullPointerError("out"))
+		return C.FioClientFailure
+	}
+
+	*out = C.FioClientAccount{}
+
+	accountValue, err := getHandle[account.Account](handle(accountID))
+	if err != nil {
+		setLastError(err)
+		return C.FioClientFailure
+	}
+
+	*out = accountToC(accountValue.AccountData())
 
 	clearLastError()
 

@@ -75,6 +75,8 @@ static void test_output_validation_and_free(void) {
 
 	EXPECT(FioClientOpenAccount(0, 0, NULL, NULL) == FioClientFailure);
 	expect_error_contains("out is NULL");
+	EXPECT(FioClientGetAccountData(0, NULL) == FioClientFailure);
+	expect_error_contains("out is NULL");
 
 	EXPECT(FioClientGetTransactions(0, 0, NULL) == FioClientFailure);
 	expect_error_contains("out is NULL");

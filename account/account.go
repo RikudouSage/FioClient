@@ -37,6 +37,9 @@ type Account interface {
 	// Transaction returns the locally stored transaction identified by
 	// transactionID. It returns ErrTransactionNotFound when no match exists.
 	Transaction(ctx context.Context, transactionID int64) (model.Transaction, error)
+
+	// AccountData returns the account's stored metadata.
+	AccountData() model.Account
 }
 
 type account struct {
@@ -149,4 +152,8 @@ func (receiver *account) LoadTransactionsByDate(ctx context.Context, startDate t
 	}
 
 	return newTransactions, nil
+}
+
+func (receiver *account) AccountData() model.Account {
+	return receiver.accountModel
 }
