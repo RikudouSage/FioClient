@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -39,6 +40,7 @@ typedef struct {
 	char* bic;
 	int64_t* instruction_id;
 	char* payer_reference;
+	bool local_only;
 } FioClientTransaction;
 
 typedef struct {

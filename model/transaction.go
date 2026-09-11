@@ -50,6 +50,9 @@ type Transaction struct {
 	InstructionID *int64 `json:"instruction_id"`
 	// PayerReference is the optional payer-supplied reference.
 	PayerReference *string `json:"payer_reference"`
+	// LocalOnly reports whether the app created the payment locally and it has
+	// not yet been confirmed by the Fio API.
+	LocalOnly bool `json:"local_only"`
 }
 
 // TransactionFromAPIModel converts a Fio API transaction into the locally

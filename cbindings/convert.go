@@ -82,6 +82,7 @@ func transactionToC(value model.Transaction) C.FioClientTransaction {
 		comment:                optionalCString(value.Comment),
 		bic:                    optionalCString(value.BIC),
 		payer_reference:        optionalCString(value.PayerReference),
+		local_only:             C.bool(value.LocalOnly),
 	}
 
 	if value.InstructionID != nil {

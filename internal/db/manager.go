@@ -122,10 +122,10 @@ func (receiver *Manager) RemoveAccountByNumber(ctx context.Context, accountNumbe
 
 func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []model.Transaction) error {
 	values := make([]any, 0)
-	query := "insert into transactions (id, account_number, date, amount, currency, counterparty_account, counterparty_name, counterparty_bank_code, counterparty_bank_name, constant_symbol, variable_symbol, specific_symbol, user_identity, transaction_type, performed_by, additional_info, comment, bic, instruction_id, payer_reference) values "
+	query := "insert into transactions (id, account_number, date, amount, currency, counterparty_account, counterparty_name, counterparty_bank_code, counterparty_bank_name, constant_symbol, variable_symbol, specific_symbol, user_identity, transaction_type, performed_by, additional_info, comment, bic, instruction_id, payer_reference, local_only) values "
 	subqueries := make([]string, 0, len(transactions))
 	for _, transaction := range transactions {
-		tmpVals := []any{transaction.ID, transaction.AccountNumber, transaction.Date, transaction.Amount, transaction.Currency, transaction.CounterpartyAccount, transaction.CounterpartyName, transaction.CounterpartyBankCode, transaction.CounterpartyBankName, transaction.ConstantSymbol, transaction.VariableSymbol, transaction.SpecificSymbol, transaction.UserIdentity, transaction.TransactionType, transaction.PerformedBy, transaction.AdditionalInfo, transaction.Comment, transaction.BIC, transaction.InstructionID, transaction.PayerReference}
+		tmpVals := []any{transaction.ID, transaction.AccountNumber, transaction.Date, transaction.Amount, transaction.Currency, transaction.CounterpartyAccount, transaction.CounterpartyName, transaction.CounterpartyBankCode, transaction.CounterpartyBankName, transaction.ConstantSymbol, transaction.VariableSymbol, transaction.SpecificSymbol, transaction.UserIdentity, transaction.TransactionType, transaction.PerformedBy, transaction.AdditionalInfo, transaction.Comment, transaction.BIC, transaction.InstructionID, transaction.PayerReference, transaction.LocalOnly}
 		values = append(values, tmpVals...)
 		subqueries = append(subqueries, "("+strings.Join(lo.RepeatBy(len(tmpVals), func(_ int) string {
 			return "?"
@@ -137,7 +137,7 @@ func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []m
 	}
 
 	query += strings.Join(subqueries, ", \n")
-	query += " on conflict (account_number, id) do update set \"date\" = excluded.date, amount = excluded.amount, currency = excluded.currency, counterparty_account = excluded.counterparty_account, counterparty_name = excluded.counterparty_name, counterparty_bank_code = excluded.counterparty_bank_code, counterparty_bank_name = excluded.counterparty_bank_name, constant_symbol = excluded.constant_symbol, variable_symbol = excluded.variable_symbol, specific_symbol = excluded.specific_symbol, user_identity = excluded.user_identity, transaction_type = excluded.transaction_type, performed_by = excluded.performed_by, additional_info = excluded.additional_info, comment = excluded.comment, bic = excluded.bic, instruction_id = excluded.instruction_id, payer_reference = excluded.payer_reference"
+	query += " on conflict (account_number, id) do update set \"date\" = excluded.date, amount = excluded.amount, currency = excluded.currency, counterparty_account = excluded.counterparty_account, counterparty_name = excluded.counterparty_name, counterparty_bank_code = excluded.counterparty_bank_code, counterparty_bank_name = excluded.counterparty_bank_name, constant_symbol = excluded.constant_symbol, variable_symbol = excluded.variable_symbol, specific_symbol = excluded.specific_symbol, user_identity = excluded.user_identity, transaction_type = excluded.transaction_type, performed_by = excluded.performed_by, additional_info = excluded.additional_info, comment = excluded.comment, bic = excluded.bic, instruction_id = excluded.instruction_id, payer_reference = excluded.payer_reference, local_only = excluded.local_only"
 
 	if _, err := receiver.db.ExecContext(ctx, query, values...); err != nil {
 		return fmt.Errorf("failed inserting transactions: %w", err)
@@ -199,6 +199,7 @@ func (receiver *Manager) LoadTransactions(ctx context.Context, options ...LoadOp
 			&transaction.BIC,
 			&transaction.InstructionID,
 			&transaction.PayerReference,
+			&transaction.LocalOnly,
 		); err != nil {
 			return nil, fmt.Errorf("failed loading transactions: %w", err)
 		}
