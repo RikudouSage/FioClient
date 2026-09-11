@@ -204,7 +204,7 @@ func (receiver *account) CreateDomesticPayment(ctx context.Context, payment dto.
 		ID:                   -rand.Int63n(math.MaxInt64),
 		AccountNumber:        receiver.accountModel.AccountNumber,
 		Date:                 TimezonedDate(payment.Date),
-		Amount:               payment.Amount,
+		Amount:               payment.Amount.Neg(),
 		Currency:             payment.Currency,
 		CounterpartyAccount:  payment.AccountTo,
 		CounterpartyBankCode: payment.BankCode,
