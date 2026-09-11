@@ -1,0 +1,24 @@
+name: Publish to pkg.go.dev
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Request pkg.go.dev indexing
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Publish module version
+        env:
+          MODULE_PATH: go.chrastecky.dev/fio-client/fioclient
+          MODULE_VERSION: ${{ github.ref_name }}
+        run: |
+          curl --fail --show-error --silent \
+            --retry 5 --retry-all-errors \
+            "https://proxy.golang.org/${MODULE_PATH}/@v/${MODULE_VERSION}.info"
