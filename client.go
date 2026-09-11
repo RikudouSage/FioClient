@@ -36,10 +36,11 @@ type Client interface {
 }
 
 type client struct {
-	database                *sql.DB
-	manager                 *db.Manager
-	encryptedAPIKeyProvider EncryptedAPIKeyProvider
-	gooseLogger             goose.Logger
+	database                   *sql.DB
+	manager                    *db.Manager
+	encryptedAPIKeyProvider    EncryptedAPIKeyProvider
+	gooseLogger                goose.Logger
+	partialTransactionsEnabled bool
 }
 
 // New creates a Client using options.
@@ -53,6 +54,7 @@ func New(options ...Option) (Client, error) {
 
 	options = append([]Option{
 		WithGooseLogger(NewNoopGooseLogger()),
+		WithPartialTransactionsEnabled(true),
 	}, options...)
 	for _, option := range options {
 		if err := option(instance); err != nil {

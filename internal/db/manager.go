@@ -146,30 +146,30 @@ func (receiver *Manager) StoreTransactions(ctx context.Context, transactions []m
 	return nil
 }
 
+// RemoveTransactions removes transactions matching options.
+func (receiver *Manager) RemoveTransactions(ctx context.Context, options ...LoadOption) error {
+	opts := loadOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
+	query := buildTransactionsQuery("delete from transactions", opts)
+	if _, err := receiver.db.ExecContext(ctx, query, opts.bindValues...); err != nil {
+		return fmt.Errorf("failed removing transactions: %w", err)
+	}
+
+	return nil
+}
+
 func (receiver *Manager) LoadTransactions(ctx context.Context, options ...LoadOption) ([]model.Transaction, error) {
 	opts := loadOptions{}
 	for _, option := range options {
 		option(&opts)
 	}
 
-	var queryBuilder strings.Builder
-	queryBuilder.WriteString("select * from transactions")
-	if len(opts.where) != 0 {
-		queryBuilder.WriteString(" where ")
-		subQueries := make([]string, 0, len(opts.where))
-		for _, where := range opts.where {
-			subQueries = append(subQueries, "("+where+")")
-		}
-		queryBuilder.WriteString(strings.Join(subQueries, " and "))
-	}
-	if opts.orderByDirection != "" && opts.orderByField != "" {
-		queryBuilder.WriteString(" order by " + opts.orderByField + " " + opts.orderByDirection)
-	}
-	if opts.limit != 0 {
-		queryBuilder.WriteString(" limit " + strconv.FormatUint(uint64(opts.limit), 10))
-	}
+	query := buildTransactionsQuery("select * from transactions", opts)
 
-	rows, err := receiver.db.QueryContext(ctx, queryBuilder.String(), opts.bindValues...)
+	rows, err := receiver.db.QueryContext(ctx, query, opts.bindValues...)
 	if err != nil {
 		return nil, fmt.Errorf("failed loading transactions: %w", err)
 	}
@@ -211,6 +211,26 @@ func (receiver *Manager) LoadTransactions(ctx context.Context, options ...LoadOp
 	}
 
 	return result, nil
+}
+
+func buildTransactionsQuery(prefix string, opts loadOptions) string {
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString(prefix)
+	if len(opts.where) != 0 {
+		queryBuilder.WriteString(" where ")
+		subQueries := make([]string, 0, len(opts.where))
+		for _, where := range opts.where {
+			subQueries = append(subQueries, "("+where+")")
+		}
+		queryBuilder.WriteString(strings.Join(subQueries, " and "))
+	}
+	if opts.orderByDirection != "" && opts.orderByField != "" {
+		queryBuilder.WriteString(" order by " + opts.orderByField + " " + opts.orderByDirection)
+	}
+	if opts.limit != 0 {
+		queryBuilder.WriteString(" limit " + strconv.FormatUint(uint64(opts.limit), 10))
+	}
+	return queryBuilder.String()
 }
 
 func (receiver *Manager) GetAccounts(ctx context.Context) ([]model.Account, error) {

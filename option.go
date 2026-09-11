@@ -77,3 +77,13 @@ func WithGooseLogger(logger goose.Logger) Option {
 		return nil
 	}
 }
+
+// WithPartialTransactionsEnabled controls whether temporary local-only
+// transactions created for submitted payments are persisted. It is enabled
+// by default.
+func WithPartialTransactionsEnabled(enabled bool) Option {
+	return func(instance *client) error {
+		instance.partialTransactionsEnabled = enabled
+		return nil
+	}
+}

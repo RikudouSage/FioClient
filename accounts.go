@@ -98,7 +98,7 @@ func (receiver *client) Account(ctx context.Context, accountNumber string) (acco
 	if accountModel, err := receiver.manager.FindAccountByNumber(ctx, accountNumber); err != nil {
 		return zero, fmt.Errorf("failed getting account: %w", err)
 	} else {
-		return account.New(accountModel, receiver.manager), nil
+		return account.New(accountModel, receiver.manager, receiver.partialTransactionsEnabled), nil
 	}
 }
 

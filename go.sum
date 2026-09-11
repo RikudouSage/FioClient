@@ -24,6 +24,10 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 go.chrastecky.dev/fio-api/fio v0.5.1 h1:0jcY28xFH9CDnW37kPVwAE2qPTRnTHcqSrTHUnC0BBA=
 go.chrastecky.dev/fio-api/fio v0.5.1/go.mod h1:WzRHoGKt7aXbTALQZbYs+HtEpyjuSlhy8MART0bdT3g=
+go.chrastecky.dev/fio-api/fio v0.5.2 h1:o1GfThRa/nveb/OOO7cHB0gd7F5nkolKfZprMq3BLGc=
+go.chrastecky.dev/fio-api/fio v0.5.2/go.mod h1:WzRHoGKt7aXbTALQZbYs+HtEpyjuSlhy8MART0bdT3g=
+go.chrastecky.dev/fio-api/fio v0.5.3 h1:/xgbSuGJ0ri9fb6KHBWNKGXkCNa4t5aYRPtCSxgcjqk=
+go.chrastecky.dev/fio-api/fio v0.5.3/go.mod h1:WzRHoGKt7aXbTALQZbYs+HtEpyjuSlhy8MART0bdT3g=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
