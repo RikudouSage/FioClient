@@ -78,6 +78,46 @@ func FioClientLoadNewTransactions(accountID C.FioClientAccountHandle, contextID 
 	return returnTransactions(out, transactions)
 }
 
+// FioClientLoadTransactionsByDate downloads and stores transactions in the
+// inclusive date range. Dates use YYYY-MM-DD format. The caller owns the
+// returned allocation and must release it with FioClientFreeTransactions.
+//
+//export FioClientLoadTransactionsByDate
+func FioClientLoadTransactionsByDate(accountID C.FioClientAccountHandle, contextID C.FioClientContextHandle, startDate *C.char, endDate *C.char, out *C.FioClientTransactions) C.FioClientResult {
+	if out == nil {
+		setLastError(nullPointerError("out"))
+		return C.FioClientFailure
+	}
+
+	*out = C.FioClientTransactions{}
+
+	accountValue, ctx, err := accountHandles(accountID, contextID)
+	if err != nil {
+		setLastError(err)
+		return C.FioClientFailure
+	}
+
+	start, err := dateFromC("start_date", startDate)
+	if err != nil {
+		setLastError(err)
+		return C.FioClientFailure
+	}
+
+	end, err := dateFromC("end_date", endDate)
+	if err != nil {
+		setLastError(err)
+		return C.FioClientFailure
+	}
+
+	transactions, err := accountValue.LoadTransactionsByDate(ctx, start, end)
+	if err != nil {
+		setLastError(err)
+		return C.FioClientFailure
+	}
+
+	return returnTransactions(out, transactions)
+}
+
 //export FioClientGetTransaction
 func FioClientGetTransaction(accountID C.FioClientAccountHandle, contextID C.FioClientContextHandle, id C.int64_t, out *C.FioClientTransaction) C.FioClientResult {
 	if out == nil {

@@ -8,10 +8,25 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
+	"time"
 	"unsafe"
 
 	"go.chrastecky.dev/fio-client/fioclient/model"
 )
+
+func dateFromC(name string, value *C.char) (time.Time, error) {
+	if value == nil {
+		return time.Time{}, nullPointerError(name)
+	}
+
+	date, err := time.Parse(time.DateOnly, C.GoString(value))
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid %s: %w", name, err)
+	}
+
+	return date, nil
+}
 
 func cString(value string) *C.char {
 	return C.CString(value)
